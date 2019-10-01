@@ -1,20 +1,22 @@
 # Make folder to store the app to build a DMG from
-mkdir -p builds/packaging/.background
+sudo mkdir -p builds/packaging/.background
 
 # Copy respective app
 if [ $1 == "metal" ]; then
-	cp -af builds/vaultClient_metal.app builds/packaging/vaultClient_metal.app
+	sudo cp -af builds/vaultClient_metal.app builds/packaging/vaultClient_metal.app
 	export APPNAME=vaultClient_metal
 else
-	cp -af builds/vaultClient.app builds/packaging/vaultClient.app
+	sudo cp -af builds/vaultClient.app builds/packaging/vaultClient.app
 	export APPNAME=vaultClient
 fi
-cp icons/dmgBackground.png builds/packaging/.background/background.png
+sudo cp icons/dmgBackground.png builds/packaging/.background/background.png
 
 # See https://stackoverflow.com/a/1513578 for reference
-hdiutil create builds/vaultClient.temp.dmg -volname "vaultClient" -srcfolder builds/packaging -format UDRW -fs HFS+ -fsargs "-c c=64,a=16,e=16"
-device=$(hdiutil attach -readwrite -noverify -noautoopen "builds/vaultClient.temp.dmg" | egrep '^/dev/' | sed 1q | awk '{print $1}')
+echo "Mounted temporary DMG"
+sudo hdiutil create builds/vaultClient.temp.dmg -volname "vaultClient" -srcfolder builds/packaging -format UDRW -fs HFS+ -fsargs "-c c=64,a=16,e=16"
+device=$(sudo hdiutil attach -readwrite -noverify -noautoopen "builds/vaultClient.temp.dmg" | egrep '^/dev/' | sed 1q | awk '{print $1}')
 
+echo "Executing AppleScript to configure DMG layout"
 # Delay 10 to give the disk time to mount - otherwise builds fail
 echo '
 	delay 10
@@ -37,14 +39,17 @@ echo '
 			close
 		end tell
 	end tell
-' | sed "s/APPNAME/$APPNAME/" | osascript
-chmod -Rf go-w /Volumes/vaultClient
-cp icons/macOSAppIcons.icns /Volumes/vaultClient/.VolumeIcon.icns
-SetFile -c icnC "/Volumes/vaultClient/.VolumeIcon.icns"
-SetFile -a C /Volumes/vaultClient
-sync
-sync
-hdiutil detach ${device}
-hdiutil convert "builds/vaultClient.temp.dmg" -format UDZO -imagekey zlib-level=9 -o "builds/vaultClient.dmg"
-rm -f builds/vaultClient.temp.dmg
-rm -rf builds/packaging
+' | sed "s/APPNAME/$APPNAME/" | sudo osascript
+sudo chmod -Rf go-w /Volumes/vaultClient
+echo "Adding Icons"
+sudo cp icons/macOSAppIcons.icns /Volumes/vaultClient/.VolumeIcon.icns
+sudo SetFile -c icnC "/Volumes/vaultClient/.VolumeIcon.icns"
+sudo SetFile -a C /Volumes/vaultClient
+sudo sync
+sudo sync
+echo "Detatching temporary DMG and converting to final DMG"
+sudo hdiutil detach ${device}
+sudo hdiutil convert "builds/vaultClient.temp.dmg" -format UDZO -imagekey zlib-level=9 -o "builds/vaultClient.dmg"
+echo "Cleaning up"
+sudo rm -f builds/vaultClient.temp.dmg
+sudo rm -rf builds/packaging
