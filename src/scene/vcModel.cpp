@@ -29,7 +29,7 @@ struct vcModelLoadInfo
   udDouble3 possibleLocation;
 };
 
-void vcModel_LoadMetadata(vcState *pProgramState, vcModel *pModel, udDouble3 possibleLocation)
+void vcModel_LoadMetadata(vcState *pProgramState, vcModel *pModel, udDouble3 /*possibleLocation*/)
 {
   const char *pMetadata;
 
@@ -70,8 +70,8 @@ void vcModel_LoadMetadata(vcState *pProgramState, vcModel *pModel, udDouble3 pos
   pModel->m_defaultMatrix = pModel->m_sceneMatrix;
   pModel->m_baseMatrix = pModel->m_defaultMatrix;
 
-  if (pModel->m_pPreferredProjection == nullptr && possibleLocation != udDouble3::zero())
-    vcProject_UpdateNodeGeometryFromCartesian(pModel->m_pProject, pModel->m_pNode, pProgramState->geozone, vdkPGT_Point, &possibleLocation, 1);
+  //if (pModel->m_pPreferredProjection == nullptr && possibleLocation != udDouble3::zero())
+  //  vcProject_UpdateNodeGeometryFromCartesian(pModel->m_pProject, pModel->m_pNode, pProgramState->geozone, vdkPGT_Point, &possibleLocation, 1);
 
   pModel->OnNodeUpdate(pProgramState);
 
